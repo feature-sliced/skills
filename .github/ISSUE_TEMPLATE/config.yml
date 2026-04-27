@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and discussions
+    url: https://github.com/feature-sliced/skills/discussions
+    about: For questions about using this skill or general FSD patterns.
+  - name: Feature-Sliced Design Telegram
+    url: https://t.me/feature_sliced
+    about: Community support for FSD.
+  - name: Official FSD documentation
+    url: https://fsd.how
+    about: The canonical source this skill is derived from.

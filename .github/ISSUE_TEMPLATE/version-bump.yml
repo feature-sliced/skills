@@ -1,0 +1,45 @@
+name: FSD version bump
+description: Track a major FSD version update and coordinate the sub-tasks needed across this repo.
+title: "Sync with FSD v"
+labels: ["version-bump", "epic"]
+body:
+  - type: input
+    id: from-version
+    attributes:
+      label: Current FSD version this skill targets
+      placeholder: v2.1
+    validations:
+      required: true
+
+  - type: input
+    id: to-version
+    attributes:
+      label: Target FSD version
+      placeholder: v2.2
+    validations:
+      required: true
+
+  - type: input
+    id: changelog-url
+    attributes:
+      label: Changelog or migration guide URL
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected-files
+    attributes:
+      label: Affected files
+      description: A checklist of files that need review. Start from the current repo structure and adjust as needed.
+      placeholder: |
+        - [ ] SKILL.md
+        - [ ] references/layer-structure.md
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything worth calling out, such as breaking changes in FSD or dependencies on upstream tooling like Steiger.

@@ -1,0 +1,56 @@
+name: Docs sync
+description: An fsd.how page changed and this skill needs an update to match.
+title: "Sync with fsd.how: "
+labels: ["docs-sync"]
+body:
+  - type: input
+    id: upstream-url
+    attributes:
+      label: Upstream URL
+      description: The fsd.how page this issue is about.
+      placeholder: https://fsd.how/docs/reference/slices-segments/
+    validations:
+      required: true
+
+  - type: dropdown
+    id: change-type
+    attributes:
+      label: Type of upstream change
+      options:
+        - Existing page was revised
+        - New page was added
+        - Page was renamed or moved
+        - Page was removed
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-file
+    attributes:
+      label: Files in this repo that likely need updates
+      multiple: true
+      options:
+        - SKILL.md
+        - references/layer-structure.md
+        - references/cross-import-patterns.md
+        - references/migration-guide.md
+        - references/framework-integration.md
+        - references/practical-examples.md
+        - A new reference file may be needed
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary of the upstream change
+      description: What changed on fsd.how.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Suggested changes in this repo
+      description: Optional. Rough notes or a sketch of the diff are fine.

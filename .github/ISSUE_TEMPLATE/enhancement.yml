@@ -1,0 +1,38 @@
+name: Enhancement
+description: Propose a new section or pattern not driven by an upstream fsd.how change.
+title: "Enhancement: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: gap
+    attributes:
+      label: What is not currently covered
+      description: What this skill does not handle well.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: location
+    attributes:
+      label: Where it should live
+      options:
+        - New section in SKILL.md
+        - New section in an existing reference file
+        - New reference file
+        - Not sure yet
+    validations:
+      required: true
+
+  - type: input
+    id: upstream
+    attributes:
+      label: Related reference
+      description: Optional. Link to any related fsd.how page or Steiger rule.
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why it matters
+      description: How often does this come up, and what tends to go wrong without this guidance?
+    validations:
+      required: true
