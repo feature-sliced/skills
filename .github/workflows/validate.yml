@@ -1,0 +1,64 @@
+name: validate
+
+on:
+  pull_request:
+    paths:
+      - 'feature-sliced-design/**'
+      - 'README.md'
+      - '.github/workflows/validate.yml'
+  push:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. SKILL.md body length must stay within the 500-line guidance.
+      # Source: vercel-labs/agent-skills AGENTS.md
+      - name: SKILL.md body size
+        run: |
+          fm_end=$(awk '/^---$/{c++; if(c==2){print NR; exit}}' feature-sliced-design/SKILL.md)
+          if ! [[ "$fm_end" =~ ^[0-9]+$ ]]; then
+            echo "::error file=feature-sliced-design/SKILL.md::SKILL.md frontmatter is malformed or missing a closing --- delimiter"
+            exit 1
+          fi
+          total=$(wc -l < feature-sliced-design/SKILL.md)
+          body=$((total - fm_end))
+          echo "SKILL.md body: $body / 500 lines"
+          if [ "$body" -gt 500 ]; then
+            echo "::error file=feature-sliced-design/SKILL.md::SKILL.md body is $body lines, exceeds the 500-line guidance"
+            exit 1
+          fi
+
+      # 2. Internal links must resolve. Skip external HTTP to keep CI fast.
+      - name: Internal links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress feature-sliced-design/**/*.md README.md
+          fail: true
+
+      # 3. Install the skill via the official CLI to verify it loads.
+      # Pattern adopted from addyosmani/agent-skills.
+      # The CLI rejects skills with malformed frontmatter, so this also
+      # serves as an implicit frontmatter validator.
+      - name: Test skill install
+        run: |
+          set -euo pipefail
+          npx -y skills add ./ \
+            --skill feature-sliced-design \
+            --agent claude-code \
+            --copy -g -y
+
+          INSTALL_PATH="$HOME/.claude/skills/feature-sliced-design"
+          if [ ! -f "$INSTALL_PATH/SKILL.md" ]; then
+            echo "::error::skill not installed at $INSTALL_PATH"
+            ls -la "$HOME/.claude/skills/" || true
+            exit 1
+          fi
+          if [ ! -d "$INSTALL_PATH/references" ]; then
+            echo "::error::references/ directory not installed"
+            exit 1
+          fi
+          echo "Skill installed and verified at $INSTALL_PATH"
