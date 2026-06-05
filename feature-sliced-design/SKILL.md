@@ -152,8 +152,13 @@ segment (`shared/ui/index.ts`, `shared/api/index.ts`, etc.) rather than
 one top-level `shared/index.ts`. This keeps imports from Shared
 organized by intent.
 
-**RSC / meta-framework exception:** Split entry points
-(`index.client.ts`, `index.server.ts`) are permitted. Details and rules:
+### Environment-specific public APIs
+
+A slice should normally expose its public API through a single `index.ts`.
+Ad-hoc customization is not recommended.
+
+If a single `index.ts` cannot preserve a runtime boundary, add an
+environment-specific entry point such as `index.server.ts`. See
 `references/framework-integration.md`.
 
 ### 4-3. No cross-imports between slices on the same layer

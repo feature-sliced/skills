@@ -212,72 +212,18 @@ Co-locate caching and revalidation logic with the queries themselves.
 Next.js reads `tsconfig.json` paths automatically. No `next.config.js`
 alias configuration is needed.
 
-### Server Components and Public API splitting
+### Server and client public APIs
 
-FSD layers work inside both Server and Client Components. However, the
-standard single `index.ts` public API can cause problems in RSC environments
-because re-exporting client and server code from the same entry point may
-trigger bundler errors or unintended boundary crossings.
+In the Next.js App Router, a single slice can contain both client-usable modules
+and server-only modules.
 
-Split the public API into multiple entry points per environment:
+Keep `index.ts` free of server-only exports, such as Server Components or
+data-access functions that import `server-only`. When a Client Component imports
+the slice, those exports can enter the client module graph and cause build
+errors.
 
-```text
-entities/user/
-  model/
-    user.ts
-  ui/
-    UserAvatar.tsx          ← 'use client', uses hooks
-    UserProfileCard.tsx     ← Server Component, no hooks
-  api/
-    user-queries.server.ts  ← Server-only data fetching
-  index.ts                  ← Shared exports (types, pure functions)
-  index.client.ts           ← Client component exports
-  index.server.ts           ← Server component + server-only exports
-```
-
-```typescript
-// entities/user/index.ts: shared (types, pure logic, no components)
-export type { User } from "./model/user";
-export { formatUserName } from "./model/user";
-
-// entities/user/index.client.ts: client components only
-export { UserAvatar } from "./ui/UserAvatar";
-
-// entities/user/index.server.ts: server components + server-only code
-export { UserProfileCard } from "./ui/UserProfileCard";
-export { fetchUser } from "./api/user-queries.server";
-```
-
-```typescript
-// Consumers import from the appropriate entry point:
-
-// In a Server Component (pages/profile/ui/ProfilePage.tsx)
-import { UserProfileCard } from "@/entities/user/index.server";
-import type { User } from "@/entities/user";
-
-// In a Client Component (features/comment/ui/CommentAuthor.tsx)
-import { UserAvatar } from "@/entities/user/index.client";
-```
-
-**Rules for split public APIs:**
-
-1. **`index.ts`**: types, constants, and pure functions that work in both
-   environments. Default import path.
-2. **`index.client.ts`**: components using `'use client'`, hooks, or
-   browser APIs.
-3. **`index.server.ts`**: Server Components and server-only data fetching.
-4. The `index.[env].ts` pattern generalises beyond RSC. Any meta-framework
-   with distinct runtime environments can use it (e.g., `index.edge.ts`).
-   Verified for Next.js App Router; Nuxt and Astro compatibility is under
-   review.
-5. Steiger support for multiple entry points is available or coming in an
-   upcoming release. If Steiger flags these files, check for version
-   updates.
-
-**When NOT to split:** A slice with no client/server boundary concerns uses
-a single `index.ts`. Split only when a slice actually has both client and
-server exports.
-
+Split only when this boundary is required. Put server-only exports in
+`index.server.ts`.
 
 ## Nuxt 3
 
