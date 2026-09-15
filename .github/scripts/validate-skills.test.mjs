@@ -14,16 +14,18 @@ const ROOT = path.resolve(import.meta.dirname, "../..");
 const SKILL = "feature-sliced-design/SKILL.md";
 const ASSETS = "feature-sliced-design/references/asset-handling.md";
 const AUTH = "feature-sliced-design/references/auth-and-api.md";
-const CASES = "evals/cases.json";
+const CASES = "feature-sliced-design/evals/evals.json";
 const LINE_LIMIT = 500;
 
 function problemsAfter(mutate) {
   const dir = mkdtempSync(path.join(tmpdir(), "validate-skills-"));
 
   try {
-    for (const entry of ["feature-sliced-design", "evals"]) {
-      cpSync(path.join(ROOT, entry), path.join(dir, entry), { recursive: true });
-    }
+    cpSync(
+      path.join(ROOT, "feature-sliced-design"),
+      path.join(dir, "feature-sliced-design"),
+      { recursive: true },
+    );
 
     mutate?.(dir);
 
@@ -61,8 +63,8 @@ function bodyLineCount(dir) {
 function setRuleOfFirstCase(dir, rule) {
   const filePath = path.join(dir, CASES);
   const parsed = JSON.parse(readFileSync(filePath, "utf8"));
-  parsed.cases[0].rule = rule;
-  parsed.cases[0].source = SKILL;
+  parsed.evals[0].rule = rule;
+  parsed.evals[0].source = SKILL;
   writeFileSync(filePath, JSON.stringify(parsed, null, 2));
 }
 
@@ -142,6 +144,13 @@ test("a case whose rule matches a heading of the source passes", () => {
   assert.deepEqual(problems, []);
 });
 
+test("a skill_name that differs from the skill directory is reported", () => {
+  const problems = problemsAfter((dir) =>
+    replaceIn(dir, CASES, '"skill_name": "feature-sliced-design"', '"skill_name": "fsd"'),
+  );
+  assertOneProblemMatching(problems, /skill_name "fsd" does not match the skill directory/);
+});
+
 test("a reference file pointing at a missing sibling is reported", () => {
   const problems = problemsAfter((dir) =>
     appendTo(dir, ASSETS, "\nMore in `references/gone.md`.\n"),
@@ -216,7 +225,7 @@ test("a null eval document is reported instead of crashing", () => {
   const problems = problemsAfter((dir) =>
     writeFileSync(path.join(dir, CASES), "null\n"),
   );
-  assertOneProblemMatching(problems, /must contain a non-empty cases array/);
+  assertOneProblemMatching(problems, /must contain a non-empty evals array/);
 });
 
 // Ids past one digit used to match nothing at all, so a dangling reference
