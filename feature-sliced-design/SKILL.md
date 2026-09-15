@@ -104,8 +104,8 @@ When writing new code, follow this tree:
 - Used in only one page → keep it in that `pages/` slice.
 - Used in 2+ pages but duplication is manageable → keeping separate copies
   in each page is also valid.
-- An entity or feature with a single consumer → keep it there (Steiger
-  flags this as `insignificant-slice`).
+- An entity or feature with a single consumer → keep it at the consumer
+  (Steiger flags this as `insignificant-slice`).
 
 **Step 2: Is it reusable infrastructure with no business logic?**
 
