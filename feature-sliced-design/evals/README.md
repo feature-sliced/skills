@@ -35,7 +35,7 @@ npx agent-skills-eval . --target <model> --judge <model> --baseline
 ```
 
 It runs every prompt twice, with and without the skill in context, grades
-both against `expected_output`, and writes a report under
+both against the case's assertions, and writes a report under
 `agent-skills-workspace/`. Read the `--baseline` column first. A case that
 passes without the skill is guarding a mistake the model does not make, so
 consider dropping it. A case that passes only with the skill shows where the
@@ -52,7 +52,7 @@ file at a time. Check that by hand.
 1. Start an agent session with only this skill installed.
 2. Send one `prompt` verbatim. Do not add context; the point is to see what
    the skill alone produces.
-3. Compare the answer to `expected_output`. Judge the placement, not the
+3. Check the answer against each assertion. Judge the placement, not the
    wording.
 4. On a mismatch, read the file named in `source` and check whether the rule
    is absent, ambiguous, contradicted elsewhere, or whether the case itself
@@ -64,16 +64,23 @@ will steer the next one.
 
 ## Adding a case
 
-Add an object to `evals` with all six fields:
+Add an object to `evals` with all seven fields:
 
 | Field | Meaning |
 | --- | --- |
 | `id` | kebab-case, unique |
 | `prompt` | what the user types, verbatim |
 | `expected_output` | the placement, plus what must not happen if that matters |
+| `assertions` | `expected_output` split into conditions a judge can grade one at a time |
 | `why` | what regression this case guards against |
 | `source` | repo-relative path to the primary file that decides it |
 | `rule` | the passage that decides it, as `;`-separated fragments; name a passage from another file too when the decision leans on one |
+
+Each assertion states one condition on the answer, phrased as "The output
+...". The first one names the placement. Each thing that must not happen
+gets an assertion of its own, so a failed run names the condition that
+broke. Two to four per case is usual; a routing case that asks about
+several items gets one per item.
 
 `source` names one file, the one to open first on a mismatch, even where
 the decision is settled by more than one passage. It must point at a file

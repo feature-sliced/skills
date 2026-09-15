@@ -144,6 +144,16 @@ test("a case whose rule matches a heading of the source passes", () => {
   assert.deepEqual(problems, []);
 });
 
+test("a case without assertions is reported", () => {
+  const problems = problemsAfter((dir) => {
+    const filePath = path.join(dir, CASES);
+    const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+    delete parsed.evals[0].assertions;
+    writeFileSync(filePath, JSON.stringify(parsed, null, 2));
+  });
+  assertOneProblemMatching(problems, /needs a non-empty "assertions" array/);
+});
+
 test("a skill_name that differs from the skill directory is reported", () => {
   const problems = problemsAfter((dir) =>
     replaceIn(dir, CASES, '"skill_name": "feature-sliced-design"', '"skill_name": "fsd"'),

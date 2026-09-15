@@ -709,6 +709,21 @@ function validateEvals(skillDirectory, documentsBySkill) {
       }
     }
 
+    // A judge grades each assertion on its own, so a case without them
+    // fails as one result and the failure does not say which rule broke.
+    const assertions = testCase?.assertions;
+
+    if (
+      !Array.isArray(assertions) ||
+      assertions.length === 0 ||
+      assertions.some((item) => typeof item !== "string" || item === "")
+    ) {
+      recordError(
+        evalsFile,
+        `case ${label} needs a non-empty "assertions" array of strings`,
+      );
+    }
+
     if (typeof testCase?.id === "string") {
       if (seen.has(testCase.id)) {
         recordError(evalsFile, `case id "${testCase.id}" is duplicated`);
