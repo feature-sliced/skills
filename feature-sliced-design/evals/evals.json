@@ -1,0 +1,255 @@
+{
+  "$comment": "Placement cases for the feature-sliced-design skill, in the evals/evals.json layout that agent-skills-eval and skill-creator read. See README.md in this directory for how to run them. Every `source` path and `rule` fragment is checked by .github/scripts/validate-skills.mjs.",
+  "skill_name": "feature-sliced-design",
+  "evals": [
+    {
+      "id": "auth-token",
+      "prompt": "Where do I put the auth token and session helpers?",
+      "expected_output": "shared/auth/ (or shared/api/). Do not create a user entity to hold the token; whether an existing current-user entity may store it is a separate question.",
+      "assertions": [
+        "The output places the auth token and session helpers under shared/, in shared/auth or shared/api.",
+        "The output does not create a new user entity to hold the token.",
+        "If the output mentions an existing current-user entity, it treats whether that entity may store the token as a separate question rather than ruling it out."
+      ],
+      "why": "Tokens and session DTOs are infrastructure, not a domain model, and wrapping a login response in an entity is the common wrong turn.",
+      "source": "feature-sliced-design/SKILL.md",
+      "rule": "Section 2, Step 2; Section 6 anti-pattern on the user entity"
+    },
+    {
+      "id": "small-project-entities",
+      "prompt": "I am starting a project with two pages. Should I create the entities and features layers now?",
+      "expected_output": "No. app/ + pages/ + shared/ is valid FSD. Add entities or features only when a shared responsibility has a stable boundary its consumers must agree on; reuse alone does not require a layer.",
+      "assertions": [
+        "The output answers no: the project should not create the entities or features layers now.",
+        "The output states that app/, pages/, and shared/ alone is a valid FSD structure.",
+        "The output conditions adding entities or features on a shared responsibility with a stable boundary, and does not treat reuse across pages as sufficient on its own."
+      ],
+      "why": "A common failure mode: small projects split into every layer up front.",
+      "source": "feature-sliced-design/SKILL.md",
+      "rule": "Section 5-2 'Start without entities'; Section 5-3"
+    },
+    {
+      "id": "plain-reusable-request",
+      "prompt": "getUserById just wraps GET /users/:id and every page calls it. Does it belong in entities/user/api/?",
+      "expected_output": "No. shared/api/. Plain resource access stays infrastructure however many consumers call it. A request moves into an entity only when an established entity boundary owns that domain responsibility.",
+      "assertions": [
+        "The output answers no and places getUserById in shared/api.",
+        "The output keeps plain resource access in shared regardless of how many pages call it.",
+        "The output moves a request into an entity only when an established entity boundary owns that domain responsibility."
+      ],
+      "why": "Guards the two-question placement rule. The old bullet list sent this exact function to entities.",
+      "source": "feature-sliced-design/references/auth-and-api.md",
+      "rule": "Request placement rule, Question 2"
+    },
+    {
+      "id": "single-page-request",
+      "prompt": "Dashboard stats are fetched only on the dashboard page. Where does the request go?",
+      "expected_output": "pages/dashboard/api/. It stays with its only consumer.",
+      "assertions": [
+        "The output places the dashboard stats request in pages/dashboard/api/.",
+        "The output does not move the request to shared/api or to an entity while the dashboard page is its only consumer."
+      ],
+      "why": "Question 1 must be asked before Question 2, or pages-first breaks.",
+      "source": "feature-sliced-design/references/auth-and-api.md",
+      "rule": "Request placement rule, Question 1"
+    },
+    {
+      "id": "same-layer-import",
+      "prompt": "features/profile needs something from features/auth. Is that allowed?",
+      "expected_output": "Generally no. Try strategies A to C first. If the documented last resort is genuinely necessary, import only through the other slice's public API, never its internals.",
+      "assertions": [
+        "The output says a direct import from features/auth into features/profile is generally not allowed.",
+        "The output recommends resolving the dependency first by merging the slices, moving the shared responsibility into an entity, or composing from an upper layer.",
+        "The output keeps a last resort reachable: if the direct import is necessary, it goes through the other slice's public API and never through its internals."
+      ],
+      "why": "The MUST rule reads as an absolute ban; the documented escape hatch must stay reachable.",
+      "source": "feature-sliced-design/references/cross-import-patterns.md",
+      "rule": "Strategy D; SKILL.md Rules 4-1 and 4-3"
+    },
+    {
+      "id": "shared-ui-import",
+      "prompt": "How do I import the Button from the shared UI kit?",
+      "expected_output": "Through the Shared UI public API: @/shared/ui when the segment index exports Button, or @/shared/ui/Button when Button has been given its own index. Never an internal file such as @/shared/ui/Button/Button.tsx.",
+      "assertions": [
+        "The output imports Button through the shared UI public API: @/shared/ui from the segment index, or @/shared/ui/Button when Button has its own index.",
+        "The output does not reject either @/shared/ui or @/shared/ui/Button as incorrect.",
+        "The output never imports an internal file such as @/shared/ui/Button/Button.tsx."
+      ],
+      "why": "Rule 4-2 makes the segment index the default and a per-component index the fallback for tree-shaking, so both imports are correct and only reaching past the boundary is not.",
+      "source": "feature-sliced-design/SKILL.md",
+      "rule": "Rule 4-2"
+    },
+    {
+      "id": "business-themed-in-shared",
+      "prompt": "Can the company logo component and an autocomplete input live in shared/ui?",
+      "expected_output": "Yes, as long as they encode no business rules and no slice-specific behavior. Business-themed presentation and generic UI interaction logic may live in shared/ui; business logic may not.",
+      "assertions": [
+        "The output answers yes: both the company logo component and the autocomplete input may live in shared/ui.",
+        "The output conditions this on the components encoding no business rules and no slice-specific behavior.",
+        "The output does not treat business-themed presentation or generic UI interaction logic as business logic that must leave shared."
+      ],
+      "why": "Rule 4-5 is easy to over-apply. Shared excludes business logic, but business-themed code and UI logic are explicitly allowed, and an agent that flattens the rule removes both.",
+      "source": "feature-sliced-design/SKILL.md",
+      "rule": "Section 2, Step 2"
+    },
+    {
+      "id": "new-project-three-pages",
+      "prompt": "Set up an FSD structure for a shop with home, product, and search pages. Home and search both call the same fetchProducts request, and every page reads the same ProductDTO.",
+      "expected_output": "app/, pages/ with three slices, shared/. No entities or features. ProductDTO and the shared fetchProducts go in shared/api; a request only one page calls stays in that page's api/ segment.",
+      "assertions": [
+        "The output proposes app/, pages/ with home, product, and search slices, and shared/, with no entities, features, or widgets layer.",
+        "The output places ProductDTO and fetchProducts in shared/api.",
+        "The output keeps a request that only one page calls in that page's api/ segment."
+      ],
+      "why": "The finished-structure reflex. Fails if any layer beyond three appears unprompted.",
+      "source": "feature-sliced-design/references/growth-walkthrough.md",
+      "rule": "Snapshot 0 and Snapshot 1; auth-and-api.md request placement rule"
+    },
+    {
+      "id": "diverged-rule",
+      "prompt": "Two pages each compute whether a product is on sale, and one copy is now out of date. What should change?",
+      "expected_output": "Move the rule to entities/product/model. Leave the ProductDTO in shared/api and the badge UI in the pages.",
+      "assertions": [
+        "The output moves the on-sale rule to entities/product/model.",
+        "The output leaves ProductDTO in shared/api.",
+        "The output leaves the badge UI in the pages rather than moving it into the entity."
+      ],
+      "why": "Reuse alone did not open entities; a rule that must agree with itself does. Also checks that the DTO does not follow the rule into the entity.",
+      "source": "feature-sliced-design/references/growth-walkthrough.md",
+      "rule": "Snapshot 2"
+    },
+    {
+      "id": "app-header-placement",
+      "prompt": "New project. Where does the app-wide header with navigation and the user menu go?",
+      "expected_output": "The header composition goes in app/ as an application-level layout, not a new widgets/ slice. Its parts keep their own ownership: an already-established feature may supply a reused action, an established entity may supply domain UI, context-free UI comes from shared. A section only one page renders stays in that page.",
+      "assertions": [
+        "The output places the header composition in app/ as an application-level layout.",
+        "The output does not create a widgets/ slice for the header.",
+        "The output sources the header's parts from their existing owners (an established feature for a reused action, an established entity for domain UI, shared for context-free UI) without creating new slices for them.",
+        "The output keeps a section that only one page renders in that page."
+      ],
+      "why": "The header is the textbook widgets example. Placement is decided by scope, and the skill discourages opening widgets for it.",
+      "source": "feature-sliced-design/references/layer-structure.md",
+      "rule": "Where should layouts be placed?; SKILL.md Section 1 widgets callout"
+    },
+    {
+      "id": "top-level-assets-segment",
+      "prompt": "Should I create src/assets/ to hold all the images and icons?",
+      "expected_output": "No. Keep an asset with the slice that owns it. A presentation asset several slices must share goes to the shared UI module that owns it, global styles and imported fonts go with app-level code, and files served as-is go in the framework's configured public directory.",
+      "assertions": [
+        "The output answers no to a top-level src/assets/ folder.",
+        "The output keeps each asset with the slice that owns it, and sends a presentation asset several slices share to the shared UI module that owns it.",
+        "The output puts global styles and imported fonts with app-level code, and files served as-is in the framework's configured public directory."
+      ],
+      "why": "A type-based assets folder is the common default and the official guidance calls it not recommended.",
+      "source": "feature-sliced-design/references/asset-handling.md",
+      "rule": "Caution; Decision tree"
+    },
+    {
+      "id": "nextjs-app-layer-name",
+      "prompt": "Next.js App Router project. Where does the FSD app layer go, and what is it called?",
+      "expected_output": "src/_app/, with src/_pages/ for the pages layer. The Next.js app/ routing folder stays at the project root and only re-exports from FSD pages.",
+      "assertions": [
+        "The output names the FSD app layer src/_app/ and the FSD pages layer src/_pages/.",
+        "The output keeps the Next.js app/ routing folder at the project root and has it only re-export from FSD pages.",
+        "The output does not move the Next.js routing folder or leave the FSD layers unprefixed under src/."
+      ],
+      "why": "An older pattern kept the FSD layers unprefixed under src/ and moved the routing folder instead. Both existed in the wild.",
+      "source": "feature-sliced-design/references/framework-integration.md",
+      "rule": "Next.js; Projects on the previously recommended pattern"
+    },
+    {
+      "id": "widgets-not-deprecated",
+      "prompt": "Our FSD 2.0 project already uses widgets. Does 2.1 require us to remove the layer?",
+      "expected_output": "No. Widgets are discouraged for new adoption, not deprecated, so an existing layer stays valid and keeps working. processes/ is the layer 2.1 deprecates. Phasing widgets out is optional.",
+      "assertions": [
+        "The output answers no: FSD 2.1 does not require removing an existing widgets layer.",
+        "The output distinguishes discouraged from deprecated, and names processes/ as the layer 2.1 deprecates.",
+        "The output presents phasing widgets out as optional."
+      ],
+      "why": "Discouraged is not deprecated. The reader most likely arrived from 2.0 already using widgets, and the guide calls this migration optional.",
+      "source": "feature-sliced-design/references/migration-guide.md",
+      "rule": "Phasing out a small widgets layer (optional); SKILL.md Section 1 widgets callout"
+    },
+    {
+      "id": "phase-out-widget-placement",
+      "prompt": "We decided to remove our small widgets layer. We have an app shell, a section only one page renders, a stable user action reused on several pages that must behave the same in each, and a generic UI block. Where does each go?",
+      "expected_output": "App shell to app; the one-page section inlines into that page; the reused action and its UI to features; the context-free UI block to shared/ui. A widget that only composes features moves up to the page or the route layout.",
+      "assertions": [
+        "The output moves the app shell to app/.",
+        "The output inlines the section only one page renders into that page.",
+        "The output moves the reused user action and its UI to features/.",
+        "The output moves the generic UI block to shared/ui.",
+        "The output moves a widget that only composes features up to the page or the route layout."
+      ],
+      "why": "Splits the routing table off the deprecated-versus-discouraged question so a failure says which half is wrong.",
+      "source": "feature-sliced-design/references/migration-guide.md",
+      "rule": "Phasing out a small widgets layer (optional)"
+    },
+    {
+      "id": "entity-selector-root-state",
+      "prompt": "In entities/todo/model/todo.ts I am writing selectTodos. RootState is exported from app/providers/store.ts. How do I type the selector?",
+      "expected_output": "Type it against only the state it reads, e.g. (state: { todos: TodoState }) => state.todos.items. Must not import RootState from app/: entities cannot depend on a higher layer. Type against RootState at the app layer if that guarantee is needed.",
+      "assertions": [
+        "The output types the selector against only the state it reads, for example (state: { todos: TodoState }) => state.todos.items.",
+        "The output does not import RootState from app/ inside entities/todo.",
+        "The output explains that entities cannot depend on a higher layer, and offers typing against RootState at the app layer as the alternative."
+      ],
+      "why": "Regression case: the skill's own example once made this upward import. Redux tutorials type selectors with RootState, so an agent reaches for it unless the dependency rule is spelled out.",
+      "source": "feature-sliced-design/references/state-management.md",
+      "rule": "Business-entity slice in entities; SKILL.md Rule 4-1"
+    },
+    {
+      "id": "similar-product-cards",
+      "prompt": "Home and search both render a ProductCard. The home card shows a recommendation reason, the search card shows a query-match snippet. Should I extract ProductCard to entities/product/ui?",
+      "expected_output": "No, not because both pages have one. They are not the same component, they change for their own reasons, and separate page-local copies are valid. Extract only if the two must agree and need one home.",
+      "assertions": [
+        "The output answers no: it does not extract ProductCard to entities/product/ui.",
+        "The output does not treat two pages having a component with the same name as a reason to extract.",
+        "The output keeps separate page-local copies as valid because the two cards change for their own reasons, and extracts only if they must agree and need one home."
+      ],
+      "why": "The whole skill decides extraction on a shared responsibility, not on a count or a matching filename, and every other case tests the positive direction.",
+      "source": "feature-sliced-design/references/growth-walkthrough.md",
+      "rule": "Snapshot 1, 'The second card is a copy, not an extraction'"
+    },
+    {
+      "id": "single-use-user-action",
+      "prompt": "Only the checkout page has a coupon form right now. Should I create features/apply-coupon?",
+      "expected_output": "No, not yet. Keep the form, its request, and its state in the checkout page while it has one consumer. Extract when another consumer appears and the action has to behave the same in both.",
+      "assertions": [
+        "The output answers no: it does not create features/apply-coupon now.",
+        "The output keeps the coupon form, its request, and its state in the checkout page while that page is the only consumer.",
+        "The output conditions extraction on another consumer appearing and the action having to behave the same in both."
+      ],
+      "why": "Guards the verb-equals-feature reflex, the features counterpart of small-project-entities, which no case covered.",
+      "source": "feature-sliced-design/SKILL.md",
+      "rule": "Section 2, Step 3; Section 5-1"
+    },
+    {
+      "id": "user-entity-does-not-own-token",
+      "prompt": "We now have entities/user because profile identity is reused across the app. Should I move the access and refresh tokens out of shared/auth into entities/user?",
+      "expected_output": "shared/auth remains the default. Entity-owned credentials are also valid, but only when an already-established user or session entity genuinely owns that authentication state; the entity existing, or profile data being reused, is not enough on its own.",
+      "assertions": [
+        "The output keeps shared/auth as the default home for the access and refresh tokens.",
+        "The output does not move the tokens into entities/user merely because the entity exists or profile data is reused.",
+        "The output allows entity-owned credentials only when an already-established user or session entity owns that authentication state."
+      ],
+      "why": "The line between reusable user-domain state and authentication infrastructure moved twice while these references were being aligned, so pin where it landed.",
+      "source": "feature-sliced-design/references/auth-and-api.md",
+      "rule": "When to use shared/auth vs a user entity"
+    },
+    {
+      "id": "single-consumer-crud",
+      "prompt": "Only the settings page calls updateNotificationSettings. It is a plain PATCH with no business rules. Should it go in shared/api because it is CRUD?",
+      "expected_output": "No. Keep it in pages/settings/api/ while that page is its only consumer. CRUD not being entity material does not make it Shared material; it moves to shared/api once it is genuinely shared.",
+      "assertions": [
+        "The output answers no and keeps updateNotificationSettings in pages/settings/api/.",
+        "The output does not send the request to shared/api on the grounds that it is CRUD.",
+        "The output moves the request to shared/api once more than one consumer calls it."
+      ],
+      "why": "Guards pages-first request ownership against the shortcut that CRUD always goes to shared/api, which three passages stated before this alignment.",
+      "source": "feature-sliced-design/references/auth-and-api.md",
+      "rule": "Request placement rule, Question 1"
+    }
+  ]
+}

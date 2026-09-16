@@ -657,8 +657,11 @@ function validateCaseRule(evalsFile, label, testCase, documentsBySkill) {
   }
 }
 
-function validateEvals(documentsBySkill) {
-  const evalsFile = path.join(ROOT, "evals", "cases.json");
+// Each skill keeps its cases in <skill>/evals/evals.json, the layout that
+// skill-creator and agent-skills-eval read, so the same file serves the
+// validator here and a judge-model harness outside CI.
+function validateEvals(skillDirectory, documentsBySkill) {
+  const evalsFile = path.join(skillDirectory, "evals", "evals.json");
 
   if (!isFile(evalsFile)) {
     return;
@@ -673,16 +676,28 @@ function validateEvals(documentsBySkill) {
     return;
   }
 
-  const cases = parsed?.cases;
+  const skillName = path.basename(skillDirectory);
+
+  // Harnesses key their reports on skill_name, so a mismatch files the
+  // results under a skill that does not exist.
+  if (parsed?.skill_name !== skillName) {
+    recordError(
+      evalsFile,
+      `skill_name "${parsed?.skill_name}" does not match the ` +
+        `skill directory "${skillName}"`,
+    );
+  }
+
+  const cases = parsed?.evals;
 
   if (!Array.isArray(cases) || cases.length === 0) {
-    recordError(evalsFile, "must contain a non-empty cases array");
+    recordError(evalsFile, "must contain a non-empty evals array");
     return;
   }
 
-  log(`  evals/cases.json: ${cases.length} case(s)`);
+  log(`  ${skillName}/evals/evals.json: ${cases.length} case(s)`);
 
-  const required = ["id", "prompt", "expect", "why", "source", "rule"];
+  const required = ["id", "prompt", "expected_output", "why", "source", "rule"];
   const seen = new Set();
 
   for (const [index, testCase] of cases.entries()) {
@@ -692,6 +707,21 @@ function validateEvals(documentsBySkill) {
       if (typeof testCase?.[field] !== "string" || testCase[field] === "") {
         recordError(evalsFile, `case ${label} is missing "${field}"`);
       }
+    }
+
+    // A judge grades each assertion on its own, so a case without them
+    // fails as one result and the failure does not say which rule broke.
+    const assertions = testCase?.assertions;
+
+    if (
+      !Array.isArray(assertions) ||
+      assertions.length === 0 ||
+      assertions.some((item) => typeof item !== "string" || item === "")
+    ) {
+      recordError(
+        evalsFile,
+        `case ${label} needs a non-empty "assertions" array of strings`,
+      );
     }
 
     if (typeof testCase?.id === "string") {
@@ -750,7 +780,10 @@ export function validateRepository(root = DEFAULT_ROOT, options = {}) {
     validateSkill(skillDirectory, documentsBySkill);
   }
 
-  validateEvals(documentsBySkill);
+  for (const skillDirectory of skillDirectories) {
+    validateEvals(skillDirectory, documentsBySkill);
+  }
+
   return errors;
 }
 
