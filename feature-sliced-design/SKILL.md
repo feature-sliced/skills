@@ -316,7 +316,7 @@ linter. Key rules:
   many slices.
 
 ```bash
-npm install -D @feature-sliced/steiger
+npm install -D steiger
 npx steiger src
 ```
 

@@ -24,7 +24,7 @@ entities with the `@x` notation. See `references/cross-import-patterns.md`.
 Use Steiger to detect slices that are used in only one place:
 
 ```bash
-npm install -D @feature-sliced/steiger
+npm install -D steiger
 npx steiger src
 ```
 
