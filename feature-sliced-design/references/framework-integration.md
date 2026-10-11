@@ -141,8 +141,12 @@ inside the FSD layers. Next.js looks for them in the project root, or in
 `src/` when the Next.js app itself uses `src/`, at the same level as its
 `app/` or `pages/` folder. Keep them there and out of `src/_app/`.
 
-Next.js 16 deprecated the `middleware` convention and renamed it `proxy`;
-older projects still use `middleware.ts`.
+Next.js 16 deprecated the `middleware` convention and renamed it `proxy`.
+Check the `next` version in `package.json` before modifying `middleware.ts`
+or `proxy.ts`. Use `proxy.ts` for Next.js 16+ and `middleware.ts` for 15 or
+earlier. Earlier versions do not load `proxy.ts`, so renaming `middleware.ts`
+to `proxy.ts` disables middleware without an error, including auth checks.
+Only rename an existing `middleware.ts` as part of a Next.js 16 upgrade.
 
 With the layout above, the Next.js `app/` and `pages/` folders sit at the
 project root, so both files sit there too. The `src/` option applies to

@@ -1,5 +1,5 @@
 {
-  "$comment": "Placement cases for the feature-sliced-design skill, in the evals/evals.json layout that agent-skills-eval and skill-creator read. See README.md in this directory for how to run them. Every `source` path and `rule` fragment is checked by .github/scripts/validate-skills.mjs.",
+  "$comment": "Placement cases for the feature-sliced-design skill, in the evals/evals.json layout that agent-skills-eval and skill-creator read. See README.md in this directory for how to grade them and add cases. Every `source` path and `rule` fragment is checked by .github/scripts/validate-skills.mjs.",
   "skill_name": "feature-sliced-design",
   "evals": [
     {

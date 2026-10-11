@@ -69,7 +69,7 @@ feature-sliced-design/
     auth-and-api.md                Auth, type definitions, API request handling
     state-management.md            Redux, TanStack Query (React Query)
   evals/
-    README.md                      How to run and maintain the cases
+    README.md                      How to grade and maintain the cases
     evals.json                     Placement regression cases
 ```
 
@@ -99,6 +99,16 @@ The validator has its own tests, which break one thing at a time in a copy of th
 ```bash
 node --test .github/scripts/validate-skills.test.mjs
 ```
+
+### Running the eval cases
+
+Placement cases are defined in `feature-sliced-design/evals/evals.json`. CI validates their format, not answer quality. To grade answers with a judge model, set an OpenAI-compatible API key and run from the repository root:
+
+```bash
+npx agent-skills-eval . --target <model> --judge <model> --baseline
+```
+
+See `feature-sliced-design/evals/README.md` for manual grading and adding cases.
 
 ## References
 
