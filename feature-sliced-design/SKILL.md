@@ -77,7 +77,7 @@ to perform it go to `features`; context-free UI goes to `shared`; an
 app-wide layout goes to `app`.
 
 Discouraged is not deprecated: an existing widgets layer stays valid. See
-`references/layer-structure.md` for that case and for layout placement.
+[layer-structure.md](references/layer-structure.md) for that case and for layout placement.
 
 ### The import rule
 
@@ -96,7 +96,7 @@ import { likePost } from "@/features/like-post"; // features → features
 ```
 
 **Note**: The `processes/` layer is **deprecated** in v2.1. For migration
-details, read `references/migration-guide.md`.
+details, read [migration-guide.md](references/migration-guide.md).
 
 ## 2. Decision framework
 
@@ -163,7 +163,7 @@ extraction rule holds.**
 
 "Confirmed multi-use" means the extraction rule holds, not that a second
 consumer appeared: two similar copies that keep drifting apart stay in
-their pages (`references/growth-walkthrough.md`, Snapshot 1). Entity UI
+their pages ([growth-walkthrough.md](references/growth-walkthrough.md), Snapshot 1). Entity UI
 carries the Section 6 caution even when the rule does hold.
 
 ## 4. Architectural rules (MUST)
@@ -202,12 +202,12 @@ each component, library, or controller folder its own index instead
 (`shared/ui/Button/index.ts` as `@/shared/ui/Button`, `shared/api/post/`
 as `@/shared/api/post`). That folder is then the boundary; reaching past
 it (`@/shared/ui/Button/Button.tsx`) is still a violation. See
-`references/layer-structure.md` for the shape.
+[layer-structure.md](references/layer-structure.md) for the shape.
 
 **Environment-specific entry points:** a slice normally exposes one
 `index.ts`, and ad-hoc variations are not recommended. If a single index
 cannot preserve a runtime boundary, add an entry point such as
-`index.server.ts`. See `references/framework-integration.md`.
+`index.server.ts`. See [framework-integration.md](references/framework-integration.md).
 
 ### 4-3. No cross-imports between slices on the same layer
 
@@ -290,7 +290,7 @@ from it), so changes propagate widely.
 
 For detailed guidance on keeping the entities layer clean (when to skip
 it entirely, how to isolate business contexts, why CRUD belongs in
-`shared/api`), see `references/excessive-entities.md`.
+`shared/api`), see [excessive-entities.md](references/excessive-entities.md).
 
 ### 5-3. Start with minimal layers
 
@@ -348,7 +348,7 @@ npx steiger src
   `auth/`, `profile-edit/`, `password-reset/`).
 - **Do not create a top-level `assets/` segment.** Place static assets next
   to the code that uses them; global stylesheets and fonts go to `app/`.
-  See `references/asset-handling.md`.
+  See [asset-handling.md](references/asset-handling.md).
 
 ## 7. Cross-import resolution
 
@@ -396,7 +396,7 @@ document the reasoning in code (a comment explaining why other strategies
 do not apply).
 
 For detailed code examples of each strategy, read
-`references/cross-import-patterns.md`.
+[cross-import-patterns.md](references/cross-import-patterns.md).
 
 ## 8. Segments & structure rules
 
@@ -418,7 +418,7 @@ Segments group code within a slice by technical purpose:
   each slice.
 - **Slice groups (optional)**: A group folder may contain related slices on
   the same layer for navigation purposes only. The group has no segments and
-  no public API. See `references/layer-structure.md` for details.
+  no public API. See [layer-structure.md](references/layer-structure.md) for details.
 
 ### File naming within segments
 
@@ -447,7 +447,7 @@ segments only (no slices). Segments within shared may import from each other.
 - `auth/`: Auth tokens, login utilities, session management
 - `config/`: Environment variables, app settings
 - Assets live with the code that uses them, not in an `assets/` segment.
-  See `references/asset-handling.md`.
+  See [asset-handling.md](references/asset-handling.md).
 
 Shared **may** contain application-aware code: route constants, API
 endpoints, branding assets, and transport types such as `ProductDTO`.
@@ -464,48 +464,48 @@ Do **not** preload all references.
   layout belongs, routing widget-like code to another layer, or grouping
   closely related slices into a parent folder for navigation (e.g., "where
   does this folder go", "how do I group these payment entities"):
-  → Read `references/layer-structure.md`
+  → Read [layer-structure.md](references/layer-structure.md)
 
 - **When setting up a new project from scratch** (e.g., "set up an FSD
   project", "start a new app with FSD"), or when asked whether to add
   entities or features yet, or to show how a structure earns each layer
   over time rather than its finished shape:
-  → Read `references/growth-walkthrough.md`
+  → Read [growth-walkthrough.md](references/growth-walkthrough.md)
 
 - **When resolving cross-import issues** between slices on the same layer,
   evaluating the `@x` pattern, choosing between Strategy A/B/C/D for
   features and widgets, or deciding whether boundaries should be merged:
-  → Read `references/cross-import-patterns.md`
+  → Read [cross-import-patterns.md](references/cross-import-patterns.md)
 
 - **When deciding whether to create or remove an entity**, dealing with too
   many entities, evaluating whether to skip the entities layer entirely,
   placing CRUD operations, or isolating business contexts to avoid `@x`
   chains:
-  → Read `references/excessive-entities.md`
+  → Read [excessive-entities.md](references/excessive-entities.md)
 
 - **When deciding where to place static assets** (images, icons, fonts,
   PDFs, stylesheets) for a single slice, for sharing across slices, or
   globally:
-  → Read `references/asset-handling.md`
+  → Read [asset-handling.md](references/asset-handling.md)
 
 - **When migrating** from FSD v2.0 to v2.1, converting a non-FSD codebase to
   FSD, phasing out an existing widgets layer, or deprecating the processes
   layer:
-  → Read `references/migration-guide.md`
+  → Read [migration-guide.md](references/migration-guide.md)
 
 - **When integrating FSD with a specific framework** (Next.js with App Router
   or Pages Router, React Router, Nuxt, Vite, Astro) for wiring routes to
   FSD pages, placing proxy/middleware and instrumentation files,
   structuring API
   route handlers, or configuring path aliases:
-  → Read `references/framework-integration.md`
+  → Read [framework-integration.md](references/framework-integration.md)
 
 - **When implementing authentication, type definitions, or API request
   handling** as concrete code within FSD structure (token storage, login
   flow, DTO placement, where a request function lives):
-  → Read `references/auth-and-api.md`
+  → Read [auth-and-api.md](references/auth-and-api.md)
 
 - **When wiring state management** (Redux slices, TanStack Query / React
   Query, including query factories, infinite scroll, Suspense mode, and
   `useMutationState`) into FSD structure:
-  → Read `references/state-management.md`
+  → Read [state-management.md](references/state-management.md)
